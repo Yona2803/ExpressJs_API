@@ -5,10 +5,9 @@ const app = express()
 const cors = require('cors');
 app.use(cors(
   {
+    "allowedheaders":"*",
   "origin": "*",
-  "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
-  "preflightContinue": false,
-  "optionsSuccessStatus": 204
+  "allowMethods": "*",
 }
 ));
 
