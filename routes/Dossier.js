@@ -9,7 +9,7 @@ router.get("/", async (req, res) => {
 
     // Validation
     if (!Num_Employe) {
-        return res.status(400).json({ status: "Bad_Request" });
+        return res.status(400).json([{ status: "Bad_Request" }]);
     }
     try {
         const Select_Records = await executeQuery({
@@ -20,11 +20,11 @@ router.get("/", async (req, res) => {
         if (Select_Records.length !== 0) {
             return res.json(Select_Records);
         } else {
-            return res.json({ status: "NoRecords" });
+            return res.json([{ status: "NoRecords" }]);
         }
     } catch (error) {
         console.error("Issue with server");
-        res.status(500).json({ status: "Server_Issue" });
+        res.status(500).json([{ status: "Server_Issue" }]);
     }
 });
 
