@@ -5,7 +5,7 @@ router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
 router.get("/", async (req, res) => {
-    const { Num_Employe } = req.body;
+    const { Num_Employe } = req.query;
 
     // Validation
     if (!Num_Employe) {
