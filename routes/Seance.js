@@ -122,8 +122,8 @@ router.post("/", async (req, res) => {
 
         // INSERT Query
         await executeQuery({
-            query: "INSERT INTO Seance VALUES (?,?,?,?,?,?,?,?,?,?)",
-            values: [newSeanceId, newSeance_Number, null, null, null, false, false, id_Dossier, Num_Technicien, Num_Physicien],
+            query: "INSERT INTO Seance VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            values: [newSeanceId, newSeance_Number, null, null,null, null,null, false, false, id_Dossier, Num_Technicien, Num_Physicien],
         });
 
         return res.status(201).json({ status: "Good" });
