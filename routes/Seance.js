@@ -49,7 +49,7 @@ router.get("/ComboBox", async (req, res) => {
             response.push({ status: "Physicien", data: "NoRecords" });
         }
         if (Select_Techniciens.length > 0) {
-            response.push({ status: "Technicien", data: Select_Techniciens });
+            response.push({ status: "Technicien", data: "NoRecords" });
         } else {
             response.push({ status: "Technicien", data: "NoRecords" });
         }
