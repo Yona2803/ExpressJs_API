@@ -103,7 +103,7 @@ async function saveFileToMongoDB(newId_Msg, fileData, contentType, fileType) {
 
 
 router.get("/", async (req, res) => {
-    const { id_Seance, User_id_1, User_id_2 } = req.body;
+    const { id_Seance, User_id_1, User_id_2 } = req.query;
     // Validation
     if (!id_Seance || !User_id_1 || !User_id_2) {
         return res.status(400).json({ status: "Bad_Request" });
