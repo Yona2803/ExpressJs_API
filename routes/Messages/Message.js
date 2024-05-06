@@ -22,7 +22,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/", upload.fields([{ name: "PDF" }, { name: "DICOM" }]), async (req, res) => {
     const { id_Seance, Envoyeur_Msg, Destinataire_Msg, Text_Msg, Timestamp_Generated } = req.body
-    let newId_Msg, newId_Fichier, Fichier_Existe = false;
+    let newId_Msg;
 
     try {
         // Validation
@@ -52,11 +52,6 @@ router.post("/", upload.fields([{ name: "PDF" }, { name: "DICOM" }]), async (req
         // File Check
         const PDFExists = req.files['PDF'] ? true : false;
         const DICOMExists = req.files['DICOM'] ? true : false;
-        // const DICOMExists = req.files['DICOM'] ? true : false;
-
-        if (PDFExists || DICOMExists) {
-            Fichier_Existe = true;
-        }
 
         // Add messages
         const Msg_MaxId = await executeQuery({
@@ -66,41 +61,17 @@ router.post("/", upload.fields([{ name: "PDF" }, { name: "DICOM" }]), async (req
         newId_Msg = (Msg_MaxId[0].Max_Id_Msg || 0) + 1;
 
         await executeQuery({
-            query: "INSERT INTO messages VALUES (?,?,?,?,?,?,?)",
-            values: [newId_Msg, Envoyeur_Msg, Destinataire_Msg, Text_Msg, Fichier_Existe, Timestamp_Generated, id_Seance,],
+            query: "INSERT INTO messages VALUES (?,?,?,?,?,?,?,?)",
+            values: [newId_Msg, Envoyeur_Msg, Destinataire_Msg, Text_Msg, DICOMExists, PDFExists, Timestamp_Generated, id_Seance,],
         });
 
-        // if PDF = true then Insert in msg_fichers
+        // if PDF = true then Add file data to MongoDB
         if (PDFExists) {
-            const Ficher_MaxId = await executeQuery({
-                query: "SELECT MAX(id_Fichiers) AS Max_Id FROM msg_fichiers",
-                values: [],
-            });
-            newId_Fichier = (Ficher_MaxId[0].Max_Id || 0) + 1;
-
-            await executeQuery({
-                query: "INSERT INTO msg_fichiers VALUES (?,?,?,?,?)",
-                values: [newId_Fichier, ("ERT-PDF[" + newId_Msg + "]"), "URL Here", newId_Msg, "PDF"],
-            });
-
-            // Add file data to MongoDB
             await saveFileToMongoDB(newId_Msg, req.files['PDF'][0].buffer, req.files['PDF'][0].mimetype, "PDF");
         }
 
-        // if DICOM = true then Insert in msg_fichers
+        // if DICOM = true then Add file data to MongoDB
         if (DICOMExists) {
-            const Ficher_MaxId = await executeQuery({
-                query: "SELECT MAX(id_Fichiers) AS Max_Id FROM msg_fichiers",
-                values: [],
-            });
-            newId_Fichier = (Ficher_MaxId[0].Max_Id || 0) + 1;
-
-            await executeQuery({
-                query: "INSERT INTO msg_fichiers VALUES (?,?,?,?,?)",
-                values: [newId_Fichier, ("ERT-DICOM[" + newId_Msg + "]"), "URL Here", newId_Msg, "DICOM"],
-            });
-
-            // Add file data to MongoDB
             await saveFileToMongoDB(newId_Msg, req.files['DICOM'][0].buffer, req.files['DICOM'][0].mimetype, "DICOM");
         }
 
