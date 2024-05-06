@@ -16,6 +16,8 @@ app.use(express.urlencoded({extended:true}));
 
 const LogIn = require("./routes/LogIn");
 app.use("/LogIn", LogIn);
+const Employe = require("./routes/Employe");
+app.use("/Employe", Employe);
 const Dossier = require("./routes/Dossier");
 app.use("/Dossier", Dossier);
 const Seance = require("./routes/Seance");
