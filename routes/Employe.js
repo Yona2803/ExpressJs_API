@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
             values: [Num_Employe],
         });
 
-        return res.status(200).json({Employe_Data});
+        return res.status(200).json(Employe_Data);
     } catch (error) {
         console.error(error);
         res.status(500).send(error);
