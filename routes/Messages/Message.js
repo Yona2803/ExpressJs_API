@@ -113,7 +113,7 @@ router.get("/", async (req, res) => {
     }
     try {
         const Select_Records = await executeQuery({
-            query: "SELECT * FROM messages WHERE (id_Seance = ? AND Envoyeur_Msg = ? AND Destinataire_Msg = ?) OR (id_Seance = ? AND Envoyeur_Msg = ? AND Destinataire_Msg = ?) ORDER BY id_Msg AND Timestamp_Generated ASC",
+            query: "SELECT * FROM messages WHERE (id_Seance = ? AND Envoyeur_Msg = ? AND Destinataire_Msg = ?) OR (id_Seance = ? AND Envoyeur_Msg = ? AND Destinataire_Msg = ?) ORDER BY id_Msg DESC",
             values: [id_Seance, User_id_1, User_id_2, id_Seance, User_id_2, User_id_1,],
         });
 
