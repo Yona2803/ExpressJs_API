@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Define the route for downloading files
 router.get("/", async (req, res) => {
-    const { id_Msg, Type_Fichier } = req.body;
+    const { id_Msg, Type_Fichier } = req.query;
 
     // Validation
     if (!id_Msg || !Type_Fichier) {
