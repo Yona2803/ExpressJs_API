@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
     }
     try {
 
-        if (Num_Employe) {
+        if (Num_Employe && !Num_Tech && !Num_Phy) {
             const Select_Records = await executeQuery({
                 query: "SELECT * FROM dossier_selec_2 WHERE Num_Employe = ?",
                 values: [Num_Employe],
@@ -24,10 +24,10 @@ router.get("/", async (req, res) => {
                 return res.json([{ status: "NoRecords" }]);
             }
         }
-        if (Num_Tech) {
+        if (Num_Employe && Num_Tech) {
             const Select_Records = await executeQuery({
-                query: "SELECT * FROM dossier_selec_2 WHERE Num_Technicien = ?",
-                values: [Num_Tech],
+                query: "SELECT * FROM dossier_selec_2 WHERE Num_Technicien = ? AND Num_Employe = ?",
+                values: [Num_Tech, Num_Employe],
             });
             if (Select_Records.length !== 0) {
                 return res.json(Select_Records);
@@ -36,10 +36,10 @@ router.get("/", async (req, res) => {
             }
         }
 
-        if (Num_Phy) {
+        if (Num_Employe && Num_Phy) {
             const Select_Records = await executeQuery({
-                query: "SELECT * FROM dossier_selec_2 WHERE Num_Physicien = ?",
-                values: [Num_Phy],
+                query: "SELECT * FROM dossier_selec_2 WHERE Num_Physicien = ? AND Num_Employe = ?",
+                values: [Num_Phy,Num_Employe],
             });
             if (Select_Records.length !== 0) {
                 return res.json(Select_Records);
@@ -47,6 +47,7 @@ router.get("/", async (req, res) => {
                 return res.json([{ status: "NoRecords" }]);
             }
         }
+                return res.json([{ status: "NoRecords" }]);
     } catch (error) {
         console.error("Issue with server");
         res.status(500).json([{ status: "Server_Issue" }]);
