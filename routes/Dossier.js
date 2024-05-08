@@ -4,29 +4,55 @@ const router = express.Router()
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
-router.get("/", async (req, res) => {
-    const { Num_Employe } = req.query;
 
+router.get("/", async (req, res) => {
+    const { Num_Employe, Num_Tech, Num_Phy } = req.query;
     // Validation
-    if (!Num_Employe) {
+    if (!Num_Employe && !Num_Tech && !Num_Phy) {
         return res.status(400).json([{ status: "Bad_Request" }]);
     }
     try {
-        const Select_Records = await executeQuery({
-            query: "SELECT * FROM dossier_select WHERE Num_Employe = ?",
-            values: [Num_Employe],
-        });
 
-        if (Select_Records.length !== 0) {
-            return res.json(Select_Records);
-        } else {
-            return res.json([{ status: "NoRecords" }]);
+        if (Num_Employe) {
+            const Select_Records = await executeQuery({
+                query: "SELECT * FROM dossier_selec_2 WHERE Num_Employe = ?",
+                values: [Num_Employe],
+            });
+            if (Select_Records.length !== 0) {
+                return res.json(Select_Records);
+            } else {
+                return res.json([{ status: "NoRecords" }]);
+            }
+        }
+        if (Num_Tech) {
+            const Select_Records = await executeQuery({
+                query: "SELECT * FROM dossier_selec_2 WHERE Num_Technicien = ?",
+                values: [Num_Tech],
+            });
+            if (Select_Records.length !== 0) {
+                return res.json(Select_Records);
+            } else {
+                return res.json([{ status: "NoRecords" }]);
+            }
+        }
+
+        if (Num_Phy) {
+            const Select_Records = await executeQuery({
+                query: "SELECT * FROM dossier_selec_2 WHERE Num_Physicien = ?",
+                values: [Num_Phy],
+            });
+            if (Select_Records.length !== 0) {
+                return res.json(Select_Records);
+            } else {
+                return res.json([{ status: "NoRecords" }]);
+            }
         }
     } catch (error) {
         console.error("Issue with server");
         res.status(500).json([{ status: "Server_Issue" }]);
     }
 });
+
 
 
 router.post("/", async (req, res) => {
