@@ -22,5 +22,26 @@ router.get("/", async (req, res) => {
     }
 });
 
+
+router.get("/ComboBox", async (req, res) => {
+    try {
+        const Select_Techniciens = await executeQuery({
+            query: "SELECT Num_Employe, Nom_Employe, Prenom_Employe FROM Employes WHERE Specialite = ?",
+            values: ["Radiotherapeute"],
+        });
+
+        // Check if both arrays are empty
+        const response = [];
+        if (Select_Techniciens.length > 0) {
+            response.push({ data: Select_Techniciens });
+        } else {
+            response.push({ data: "NoRecords" });
+        }
+        return res.json(response);
+    } catch (error) {
+        console.error("Issue with server:", error);
+        return res.status(500).json({ status: "Server_Issue" });
+    }
+});
 module.exports = router;
 
