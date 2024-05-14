@@ -5,22 +5,44 @@ router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
 router.get("/", async (req, res) => {
-    const { id_Dossier } = req.query;
+    const { id_Dossier, Num_Tech, Num_Phy } = req.query;
     // Validation
-    if (!id_Dossier) {
+    if ((!id_Dossier && !Num_Tech && !Num_Phy) || (!id_Dossier && (Num_Tech || Num_Phy))) {
         return res.status(400).json({ status: "Bad_Request" });
     }
     try {
-        const Select_Records = await executeQuery({
-            query: "SELECT id_Seance, Seance_Number, Fin_Seance, Num_Technicien, Num_Physicien FROM seance WHERE id_Dossier = ?",
-            values: [id_Dossier],
-        });
-
-        if (Select_Records.length !== 0) {
-            return res.json(Select_Records);
-        } else {
-            return res.json([{ status: "NoRecords" }]);
+        let URL, Check;
+        if (id_Dossier && !Num_Tech && !Num_Phy) {
+            URL = "SELECT id_Seance, Seance_Number, Fin_Seance, Num_Technicien, Num_Physicien FROM seance WHERE id_Dossier = ?";
+            const Select_Records = await executeQuery({
+                query: URL,
+                values: [id_Dossier],
+            });
+            if (Select_Records.length !== 0) {
+                return res.json(Select_Records);
+            }
         }
+        if (id_Dossier && Num_Tech && !Num_Phy) {
+            URL = "SELECT id_Seance, Seance_Number, Fin_Seance, Num_Technicien, Num_Physicien FROM seance WHERE id_Dossier = ? AND Num_Technicien = ?";
+            const Select_Records = await executeQuery({
+                query: URL,
+                values: [id_Dossier, Num_Tech],
+            });
+            if (Select_Records.length !== 0) {
+                return res.json(Select_Records);
+            }
+        }
+        if (id_Dossier && !Num_Tech && Num_Phy) {
+            URL = "SELECT id_Seance, Seance_Number, Fin_Seance, Num_Technicien, Num_Physicien FROM seance WHERE id_Dossier = ? AND Num_Physicien = ?";
+            const Select_Records = await executeQuery({
+                query: URL,
+                values: [id_Dossier, Num_Phy],
+            });
+            if (Select_Records.length !== 0) {
+                return res.json(Select_Records);
+            }
+        }
+        return res.json({ status: "NoRecords" });
     } catch (error) {
         console.error("Issue with server");
         res.status(500).json({ status: "Server_Issue" });
