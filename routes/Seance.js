@@ -84,9 +84,6 @@ router.get("/ComboBox", async (req, res) => {
 });
 
 
-
-
-
 router.post("/", async (req, res) => {
     const { id_Dossier, Num_Technicien, Num_Physicien } = req.body;
     let newSeanceId, newSeance_Number;
