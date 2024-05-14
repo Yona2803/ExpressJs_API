@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
 
         if (Num_Employe && !Num_Tech && !Num_Phy) {
             const Select_Records = await executeQuery({
-                query: "SELECT * FROM dossier_select_2 WHERE Num_Employe = ?",
+                query: "SELECT * FROM dossier_select WHERE Num_Employe = ?",
                 values: [Num_Employe],
             });
             if (Select_Records.length !== 0) {
