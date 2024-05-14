@@ -26,7 +26,7 @@ router.get("/", async (req, res) => {
         }
         if (Num_Employe && Num_Tech) {
             const Select_Records = await executeQuery({
-                query: "SELECT * FROM dossier_select_2 WHERE Num_Technicien = ? AND Num_Employe = ?",
+                query: "SELECT * FROM dossier_select WHERE Num_Technicien = ? AND Num_Employe = ?",
                 values: [Num_Tech, Num_Employe],
             });
             if (Select_Records.length !== 0) {
@@ -38,7 +38,7 @@ router.get("/", async (req, res) => {
 
         if (Num_Employe && Num_Phy) {
             const Select_Records = await executeQuery({
-                query: "SELECT * FROM dossier_select_2 WHERE Num_Physicien = ? AND Num_Employe = ?",
+                query: "SELECT * FROM dossier_select WHERE Num_Physicien = ? AND Num_Employe = ?",
                 values: [Num_Phy,Num_Employe],
             });
             if (Select_Records.length !== 0) {
