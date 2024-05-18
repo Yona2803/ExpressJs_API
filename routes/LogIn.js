@@ -16,7 +16,6 @@ router.get("/", async (req, res) => {
         });
 
         if (Select_Records.length !== 0) {
-            // Check if Password_Employe matches
             const status = Select_Records.some(record => record.Password_Employe !== Password_Employe);
             if (status) {
                 return res.json({ status: "Password" });

@@ -64,6 +64,31 @@ router.post("/", async (req, res) => {
         return res.status(400).json({ status: "Bad_Request" });
     }
     try {
+        // Nom_Patient || Prenom_Patient || Email_Patient || Num_Tel_Patient
+        const Check_Nom_Patient = await executeQuery({
+            query: "SELECT id_Patient FROM patients WHERE Nom_Patient = ? AND Prenom_Patient = ?",
+            values: [Nom_Patient, Prenom_Patient],
+        });
+        if (Check_Nom_Patient.length !== 0) {
+            return res.status(400).json({ status: "Nom_Prenom" });
+        }
+        
+        const Check_Num_Tel_Patient = await executeQuery({
+            query: "SELECT id_Patient FROM patients WHERE Num_Tel_Patient = ?",
+            values: [Num_Tel_Patient],
+        });
+        if (Check_Num_Tel_Patient.length !== 0) {
+            return res.status(400).json({ status: "Num_Tel_Patient" });
+        }
+        
+        const Check_Email_Patient = await executeQuery({
+            query: "SELECT id_Patient FROM patients WHERE Email_Patient = ?",
+            values: [Email_Patient],
+        });
+        if (Check_Email_Patient.length !== 0) {
+            return res.status(400).json({ status: "Email_Patient" });
+        }
+        
         // Add new Patient
         const Patient_MaxId = await executeQuery({
             query: "SELECT MAX(id_Patient) AS Max_Id FROM patients",
