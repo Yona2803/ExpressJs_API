@@ -31,7 +31,7 @@ router.get("/General", async (req, res) => {
 });
 
 router.get("/Seance", async (req, res) => {
-    const { id_Seance } = req.body;
+    const { id_Seance } = req.query;
     // Validation
     if (!id_Seance) {
         return res.status(400).json({ status: "Bad_Request" });
@@ -55,7 +55,7 @@ router.get("/Seance", async (req, res) => {
 });
 
 router.get("/General_Info", async (req, res) => {
-    const { id_Seance } = req.body;
+    const { id_Seance } = req.query;
     // Validation
     if (!id_Seance) {
         return res.status(400).json({ status: "Bad_Request" });
