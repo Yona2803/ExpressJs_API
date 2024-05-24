@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
     }
     try {
         const Select_Records = await executeQuery({
-            query: "SELECT id_Seance, Seance_Number, Fin_Seance FROM seance WHERE id_Dossier = ? AND Rapport_Exist= true",
+            query: "SELECT Nom_Rapport, Timestamp_Generated, Volume_IMG1, Volume_IMG2, Difference_Volume FROM Seance WHERE id_Seance = ? ",
             values: [id_Dossier],
         });
 
