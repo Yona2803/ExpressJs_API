@@ -1,4 +1,5 @@
 const { executeQuery } = require("../../lib/db");
+require("dotenv").config();
 const express = require("express"),
     fs = require("fs"),
     mongoose = require("mongoose"),
@@ -9,7 +10,7 @@ const router = express.Router()
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
-mongoose.connect("mongodb+srv://aa7860_pfe:myApp_159753@file.jttco2n.mongodb.net/?retryWrites=true&w=majority&appName=File")
+mongoose.connect(process.env.MONGO_DB)
     .then(() => {
         console.log("Connected to MongoDB Successfully");
     }).catch((error) => {
