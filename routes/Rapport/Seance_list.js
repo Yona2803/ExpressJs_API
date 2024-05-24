@@ -6,7 +6,7 @@ router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
 router.get("/", async (req, res) => {
-    const { id_Dossier } = req.body;
+    const { id_Dossier } = req.query;
     // Validation
     if (!id_Dossier) {
         return res.status(400).json({ status: "Bad_Request" });
