@@ -39,7 +39,7 @@ router.get("/Seance", async (req, res) => {
 
     try {
         const Select_Records = await executeQuery({
-            query: "SELECT Nom_Rapport, Timestamp_Generated	FROM Seance WHERE id_Seance = ? LIMIT 1",
+            query: "SELECT Nom_Rapport, Timestamp_Generated, Volume_IMG1, Volume_IMG2, Difference_Volume FROM Seance WHERE id_Seance = ? LIMIT 1",
             values: [id_Seance],
         });
 
