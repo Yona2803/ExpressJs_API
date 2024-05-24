@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
 
         if (Num_Employe && !Num_Tech && !Num_Phy) {
             const Select_Records = await executeQuery({
-                query: "SELECT DISTINCT id_Dossier, Num_Employe, id_Patient ,Nom_Patient, Prenom_Patient FROM dossier_select WHERE Num_Employe = ?",
+                query: "SELECT DISTINCT id_Dossier, Num_Employe, id_Patient ,Nom_Patient, Prenom_Patient FROM dossier_select WHERE Num_Employe = ? ORDER By Num_Employe ASC",
                 values: [Num_Employe],
             });
             if (Select_Records.length !== 0) {
@@ -26,7 +26,7 @@ router.get("/", async (req, res) => {
         }
         if (Num_Employe && Num_Tech && !Num_Phy) {
             const Select_Records = await executeQuery({
-                query: "SELECT DISTINCT id_Dossier, Num_Employe, id_Patient ,Nom_Patient, Prenom_Patient  FROM dossier_select WHERE Num_Employe = ? and Num_Technicien = ?",
+                query: "SELECT DISTINCT id_Dossier, Num_Employe, id_Patient ,Nom_Patient, Prenom_Patient  FROM dossier_select WHERE Num_Employe = ? and Num_Technicien = ? ORDER By Num_Employe ASC",
                 values: [Num_Employe, Num_Tech],
             });
             if (Select_Records.length !== 0) {
@@ -38,7 +38,7 @@ router.get("/", async (req, res) => {
 
         if (Num_Employe && !Num_Tech && Num_Phy ) {
             const Select_Records = await executeQuery({
-                query: "SELECT DISTINCT id_Dossier, Num_Employe, id_Patient ,Nom_Patient, Prenom_Patient  FROM dossier_select WHERE Num_Employe = ? and Num_Physicien = ?",
+                query: "SELECT DISTINCT id_Dossier, Num_Employe, id_Patient ,Nom_Patient, Prenom_Patient  FROM dossier_select WHERE Num_Employe = ? and Num_Physicien = ? ORDER By Num_Employe ASC",
                 values: [Num_Employe, Num_Phy],
             });
             if (Select_Records.length !== 0) {
