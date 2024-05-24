@@ -13,7 +13,8 @@ router.get("/", async (req, res) => {
     }
     try {
         const Select_Records = await executeQuery({
-            query: "SELECT Nom_Rapport, Timestamp_Generated, Volume_IMG1, Volume_IMG2, Difference_Volume FROM Seance WHERE id_Dossier = ? AND Rapport_Exist = true ORDER BY id_Seance ASC ",
+            query: "SELECT id_Seance, Seance_Number, Nom_Rapport, Timestamp_Generated FROM Seance WHERE id_Dossier = ? AND Rapport_Exist = true ORDER BY id_Seance ASC ",
+        //    query: "SELECT id_Seance, Seance_Number, Nom_Rapport, Timestamp_Generated, Volume_IMG1, Volume_IMG2, Difference_Volume FROM Seance WHERE id_Dossier = ? AND Rapport_Exist = true ORDER BY id_Seance ASC ",
             values: [id_Dossier],
         });
 
