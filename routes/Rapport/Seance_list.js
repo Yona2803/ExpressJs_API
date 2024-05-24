@@ -29,4 +29,27 @@ router.get("/", async (req, res) => {
     }
 });
 
+router.get("/GR_S", async (req, res) => {
+    const { id_Dossier } = req.query;
+    // Validation
+    if (!id_Dossier) {
+        return res.status(400).json({ status: "Bad_Request" });
+    }
+    try {
+        const Select_Records = await executeQuery({
+       query: "SELECT id_Seance, Seance_Number, Volume_IMG1, Volume_IMG2, Difference_Volume FROM Seance WHERE id_Dossier = ? ORDER BY id_Seance ASC ",
+            values: [id_Dossier],
+        });
+
+        if (Select_Records.length !== 0) {
+            return res.json(Select_Records);
+        } else {
+            return res.json({ status: "NoRecords" });
+        }
+    } catch (error) {
+        console.error("Issue with server");
+        res.status(500).json({ status: "Server_Issue" });
+    }
+});
+
 module.exports = router;
