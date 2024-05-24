@@ -15,7 +15,7 @@ router.get("/General", async (req, res) => {
 
     try {
         const Select_Records = await executeQuery({
-            query: "SELECT * FROM Rapport_Dossier WHERE id_Dossier = ? ORDER BY id_Rapport DESC",
+            query: "SELECT * FROM Rapport_Dossier WHERE id_Dossier = ? ORDER BY id_Dossier ASC",
             values: [id_Dossier],
         });
 
