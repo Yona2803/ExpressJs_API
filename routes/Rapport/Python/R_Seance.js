@@ -4,9 +4,11 @@ const express = require("express"),
     fs = require("fs"),
     mongoose = require("mongoose"),
     Fichier = require("../../../models/R_Seance"),
-    multer = require("multer");
+    multer = require("multer"),
+    path = require("path"),
+    os = require("os");
 
-const router = express.Router()
+const router = express.Router();
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
@@ -17,100 +19,75 @@ mongoose.connect(process.env.MONGO_DB)
         console.log("Error occurred while connecting to MongoDB: ", error);
     });
 
-
+const { spawn } = require('child_process');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (req, res) => {
-    const { id_Seance, Timestamp_Generated } = req.body
-    let VolT_1, VolT_2, DVolT, NomFishier;
-    let IMG_1_Data, IMG_2_Data;
-    try {
-        // Validation
-        if (!id_Seance || !Timestamp_Generated) {
-            return res.status(400).json({ status: "Missing_fields" });
-        }
+    const { id_Seance, Timestamp_Generated } = req.body;
 
-        // File Check
-        const IMG_1Exists = req.files['IMG_1'] ? true : false;
-        const IMG_2Exists = req.files['IMG_2'] ? true : false;
+    if (!id_Seance || !Timestamp_Generated) {
+        return res.status(400).json({ status: "Missing_fields" });
+    }
 
-        if (!IMG_1Exists || !IMG_2Exists) {
-            return res.status(400).json({ status: "Missing_files" });
-        }
+    const IMG_1 = req.files['IMG_1'] ? req.files['IMG_1'][0] : null;
+    const IMG_2 = req.files['IMG_2'] ? req.files['IMG_2'][0] : null;
 
-        if (IMG_1Exists) {
-            IMG_1_Data = (
-                {
-                    "File_Buffer": req.files['IMG_1'][0].buffer,
-                    "File_MimeType": req.files['IMG_1'][0].mimetype,
-                });
-            console.log(IMG_1_Data["File_Buffer"]);
-        }
-        
-        if (IMG_2Exists) {
-            IMG_2_Data = (
-                {
-                    "File_Buffer": req.files['IMG_2'][0].buffer,
-                    "File_MimeType": req.files['IMG_2'][0].mimetype,
-                });
-            console.log(IMG_2_Data);
-        }
+    if (!IMG_1 || !IMG_2) {
+        return res.status(400).json({ status: "Missing_files" });
+    }
 
-        // Python Call
+    const tempDir = os.tmpdir();
+    const IMG_1Path = path.join(tempDir, IMG_1.originalname);
+    const IMG_2Path = path.join(tempDir, IMG_2.originalname);
 
+    fs.writeFileSync(IMG_1Path, IMG_1.buffer);
+    fs.writeFileSync(IMG_2Path, IMG_2.buffer);
 
+    const pythonProcess = spawn('python', ['./routes/Rapport/Python/Seance_Code.py', IMG_1Path, IMG_2Path]);
 
+    pythonProcess.stdout.on('data', async (data) => {
+        const output = data.toString();
+        const [delta_vol, vol_1, vol_2] = output.split(',').map(parseFloat);
 
+        await saveFile(id_Seance, `ERT-SÉANCE[${id_Seance}]`, vol_1, vol_2, delta_vol, Timestamp_Generated);
 
-
-
-
-
-
-
-        // Update or Insert to Seance
-        VolT_1 = "10"
-        VolT_2 = "9"
-        DVolT = (VolT_2 - VolT_1)
-        NomFishier = "ERT-RSÉANCE[" + id_Seance + "]"
-
-        console.log({
-            VolT_1: VolT_1,
-            VolT_2: VolT_2,
-            DVolT: DVolT,
-            Timestamp_Generated: Timestamp_Generated,
-            NomFishier
+        res.status(200).json({
+            VolT_1: vol_1,
+            VolT_2: vol_2,
+            DVolT: delta_vol,
+            Timestamp_Generated,
+            NomFishier: `ERT-SÉANCE[${id_Seance}]`
         });
 
+        fs.unlinkSync(IMG_1Path);
+        fs.unlinkSync(IMG_2Path);
+    });
 
-        return res.json({ status: "Good" });
-    } catch (error) {
-        console.error("Issue with server : " + error);
-        res.status(500).json({ status: "Server_Issue : " + error });
-    }
+    pythonProcess.stderr.on('data', (data) => {
+        console.error(`Python error: ${data.toString()}`);
+        res.status(500).json({ status: "Server_Issue", error: data.toString() });
+
+        if (fs.existsSync(IMG_1Path)) fs.unlinkSync(IMG_1Path);
+        if (fs.existsSync(IMG_2Path)) fs.unlinkSync(IMG_2Path);
+    });
+
+    pythonProcess.on('close', (code) => {
+        console.log(`Python process exited with code ${code}`);
+    });
+    return
 });
 
-
-
-
-
-
-async function saveFileToMongoDB(newId_Msg, fileData, contentType, fileType) {
+async function saveFile(id_Seance, Nom_Rapport, Volume_IMG1, Volume_IMG2, Difference_Volume, Timestamp_Generated) {
     try {
-        // Create a new files instance
-        const newFile = new Fichier({
-            Id_Msg: newId_Msg,
-            Type_Fichier: fileType,
-            file: {
-                data: fileData,
-                contentType: contentType
-            }
+        await executeQuery({
+            query: "UPDATE `seance` SET Nom_Rapport = ?, Volume_IMG1 = ?, Volume_IMG2 = ?, Difference_Volume = ?, Timestamp_Generated = ?, Rapport_Exist= true WHERE id_Seance  = ?",
+            values: [Nom_Rapport, Volume_IMG1, Volume_IMG2, Difference_Volume, Timestamp_Generated, id_Seance,],
         });
-        // await newFile.save();
+
     } catch (error) {
         console.error("Error saving file to MongoDB:", error);
-        throw error; // Rethrow the error for proper error handling in the calling function
+        throw error;
     }
 };
 
