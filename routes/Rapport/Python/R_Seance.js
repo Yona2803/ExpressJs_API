@@ -12,19 +12,13 @@ const router = express.Router();
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(process.env.MONGO_DB)
-    .then(() => {
-        console.log("Connected to MongoDB Successfully");
-    }).catch((error) => {
-        console.log("Error occurred while connecting to MongoDB: ", error);
-    });
-
 const { spawn } = require('child_process');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (req, res) => {
     const { id_Seance, Timestamp_Generated } = req.body;
+    const Nom_Rapport = `ERT-SÉANCE[${id_Seance}]`
 
     if (!id_Seance || !Timestamp_Generated) {
         return res.status(400).json({ status: "Missing_fields" });
@@ -46,22 +40,10 @@ router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (r
 
     const pythonProcess = spawn('python', ['./routes/Rapport/Python/Seance_Code.py', IMG_1Path, IMG_2Path]);
 
-    pythonProcess.stdout.on('data', async (data) => {
-        const output = data.toString();
-        const [delta_vol, vol_1, vol_2] = output.split(',').map(parseFloat);
+    let outputData = '';
 
-        await saveFile(id_Seance, `ERT-SÉANCE[${id_Seance}]`, vol_1, vol_2, delta_vol, Timestamp_Generated);
-
-        res.status(200).json({
-            VolT_1: vol_1,
-            VolT_2: vol_2,
-            DVolT: delta_vol,
-            Timestamp_Generated,
-            NomFishier: `ERT-SÉANCE[${id_Seance}]`
-        });
-
-        fs.unlinkSync(IMG_1Path);
-        fs.unlinkSync(IMG_2Path);
+    pythonProcess.stdout.on('data', (data) => {
+        outputData += data.toString();
     });
 
     pythonProcess.stderr.on('data', (data) => {
@@ -72,23 +54,99 @@ router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (r
         if (fs.existsSync(IMG_2Path)) fs.unlinkSync(IMG_2Path);
     });
 
-    pythonProcess.on('close', (code) => {
+    pythonProcess.on('close', async (code) => {
         console.log(`Python process exited with code ${code}`);
+
+        const [delta_vol, vol_1, vol_2, pdf_path] = outputData.split(',');
+        const pdfPath = pdf_path.trim();
+
+        if (!pdfPath) {
+            res.status(500).json({ status: "Server_Issue", error: "PDF path not generated." });
+            return;
+        }
+
+        try {
+            if (!fs.existsSync(pdfPath)) {
+                console.error(`PDF file not found at path: ${pdfPath}`);
+                res.status(500).json({ status: "Server_Issue", error: "PDF file not found." });
+                return;
+            }
+
+            const PDF_buffer = fs.readFileSync(pdfPath);
+            console.log(`PDF Buffer Length: ${PDF_buffer.length}`);
+
+            const existingFile = await Fichier.findOne({ id_Seance });
+
+            if (existingFile) {
+                console.log("file exist // " + id_Seance + " -|-" + Nom_Rapport)
+                existingFile.file.data = PDF_buffer;
+                existingFile.file.contentType = "application/pdf";
+                await existingFile.save();
+            } else {
+                console.log("file not exist // " + id_Seance + " -|-" + Nom_Rapport)
+                const newFile = new Fichier({
+                    id_Seance: id_Seance,
+                    Nom_Rapport: Nom_Rapport,
+                    file: {
+                        data: PDF_buffer,
+                        contentType: "application/pdf"
+                    }
+                });
+                await newFile.save();
+
+            }
+
+            await saveFile(id_Seance, Nom_Rapport, vol_1, vol_2, delta_vol, Timestamp_Generated);
+
+            res.status(200).json({
+                VolT_1: parseFloat(vol_1),
+                VolT_2: parseFloat(vol_2),
+                DVolT: parseFloat(delta_vol),
+                Timestamp_Generated,
+                NomFishier: `ERT-SÉANCE[${id_Seance}]`,
+                PDF_buffer: PDF_buffer.toString('base64'),
+            });
+
+            if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
+            if (fs.existsSync(IMG_1Path)) fs.unlinkSync(IMG_1Path);
+            if (fs.existsSync(IMG_2Path)) fs.unlinkSync(IMG_2Path);
+        } catch (error) {
+            console.error(`Error processing PDF file: ${error}`);
+            res.status(500).json({ status: "Server_Issue", error: "Failed to process PDF file." });
+        }
     });
-    return
 });
 
 async function saveFile(id_Seance, Nom_Rapport, Volume_IMG1, Volume_IMG2, Difference_Volume, Timestamp_Generated) {
     try {
         await executeQuery({
-            query: "UPDATE `seance` SET Nom_Rapport = ?, Volume_IMG1 = ?, Volume_IMG2 = ?, Difference_Volume = ?, Timestamp_Generated = ?, Rapport_Exist= true WHERE id_Seance  = ?",
-            values: [Nom_Rapport, Volume_IMG1, Volume_IMG2, Difference_Volume, Timestamp_Generated, id_Seance,],
+            query: "UPDATE `seance` SET Nom_Rapport = ?, Volume_IMG1 = ?, Volume_IMG2 = ?, Difference_Volume = ?, Timestamp_Generated = ?, Rapport_Exist= true WHERE id_Seance = ?",
+            values: [Nom_Rapport, Volume_IMG1, Volume_IMG2, Difference_Volume, Timestamp_Generated, id_Seance],
         });
-
     } catch (error) {
         console.error("Error saving file to MongoDB:", error);
         throw error;
     }
 };
 
+router.get("/", async (req, res) => {
+    const { id_Seance, Nom_Rapport } = req.query;
+    if (!id_Seance || !Nom_Rapport) {
+        return res.status(400).json({ status: "Bad_Request" });
+    }
+    try {
+        const fileRecord = await Fichier.findOne({ id_Seance: id_Seance, Nom_Rapport: Nom_Rapport });
+        if (!fileRecord) {
+            return res.status(404).json({ error: "File not found" });
+        }
+        res.set({
+            "Content-Type": fileRecord.file.contentType,
+            "Content-Disposition": `attachment; filename="${fileRecord.Id_Msg}.${fileRecord.Type_Fichier}"`,
+        });
+        res.send(fileRecord.file.data);
+    } catch (error) {
+        console.error("Error downloading file:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
 module.exports = router;
