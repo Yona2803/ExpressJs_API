@@ -104,9 +104,8 @@ router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (r
                 DVolT: parseFloat(delta_vol),
                 Timestamp_Generated,
                 NomFishier: `ERT-SÉANCE[${id_Seance}]`,
-                PDF_buffer: PDF_buffer,
+                PDF_buffer: PDF_buffer.toString('base64'),
             });
-            //.toString('base64')
 
             if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
             if (fs.existsSync(IMG_1Path)) fs.unlinkSync(IMG_1Path);
