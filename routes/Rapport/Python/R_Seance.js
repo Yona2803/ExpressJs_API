@@ -17,11 +17,22 @@ const { spawn } = require('child_process');
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (req, res) => {
-    const { id_Seance, Timestamp_Generated, id_Patient, Date_Nais_Patient } = req.body;
+    const { id_Seance, Timestamp_Generated, id_Patient } = req.body;
     const Nom_Rapport = `ERT-SÉANCE[${id_Seance}]`
-
-    if (!id_Seance || !Timestamp_Generated || !id_Patient || !Date_Nais_Patient) {
+    let userInfo;
+    if (!id_Seance || !Timestamp_Generated || !id_Patient) {
         return res.status(400).json({ status: "Missing_fields" });
+    }
+
+    const Select_Records = await executeQuery({
+        query: "SELECT Nom_Patient, Prenom_Patient, Date_Nais_Patient  FROM patients WHERE id_Patient = ? ",
+        values: [id_Patient],
+    });
+    if (Select_Records.length !== 0) {
+        const dateOfBirth = new Date(Select_Records[0]["Date_Nais_Patient"]).toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        userInfo = [Select_Records[0]["Nom_Patient"], Select_Records[0]["Prenom_Patient"], dateOfBirth];
+    } else {
+        return res.json([{ status: "NoRecords" }]);
     }
 
     const IMG_1 = req.files['IMG_1'] ? req.files['IMG_1'][0] : null;
@@ -38,7 +49,7 @@ router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (r
     fs.writeFileSync(IMG_1Path, IMG_1.buffer);
     fs.writeFileSync(IMG_2Path, IMG_2.buffer);
 
-    const pythonProcess = spawn('python', ['./routes/Rapport/Python/Seance_Code.py', IMG_1Path, IMG_2Path, id_Patient, Date_Nais_Patient]);
+    const pythonProcess = spawn('python', ['./routes/Rapport/Python/Seance_Code.py', IMG_1Path, IMG_2Path, id_Patient, userInfo[2]]);
 
     let outputData = '';
 
@@ -93,7 +104,6 @@ router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (r
                     }
                 });
                 await newFile.save();
-
             }
 
             await saveFile(id_Seance, Nom_Rapport, vol_1, vol_2, delta_vol, Timestamp_Generated);
