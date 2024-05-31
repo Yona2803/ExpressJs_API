@@ -9,11 +9,11 @@ import pandas as pd
 import sys
 import shutil
 
-# Set the context precision to 4 decimal places
 getcontext().prec = 4
 
 
-def process_images(file1_path, file2_path):
+def process_images(file1_path, file2_path, id_Patient, Date_Nais_Patient):
+    userInfos = [id_Patient, Date_Nais_Patient]
     files = [file1_path, file2_path]
     volumes = []
 
@@ -61,9 +61,8 @@ def process_images(file1_path, file2_path):
             ax1.axis("off")
 
             patient_info = [
-                ["Nom:", "VotreNom"],
-                ["Prénom:", "VotrePrénom"],
-                ["Age:", "VotreAge"],
+                ["id Patient: ", userInfos[0]],
+                ["Date naissance: ", userInfos[1]],
             ]
             table_patient_info = ax1.table(
                 cellText=patient_info, cellLoc="center", loc="center"
@@ -159,15 +158,19 @@ def process_images(file1_path, file2_path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python theCode.py <file1_path> <file2_path>")
+    if len(sys.argv) != 5:
+        print(
+            "Usage: python theCode.py <file1_path> <file2_path> <id_Patient> <Date_Nais_Patient>"
+        )
         sys.exit(1)
 
     file1_path = sys.argv[1]
     file2_path = sys.argv[2]
+    id_Patient = sys.argv[3]
+    Date_Nais_Patient = sys.argv[4]
 
     try:
-        process_images(file1_path, file2_path)
+        process_images(file1_path, file2_path, id_Patient, Date_Nais_Patient)
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)

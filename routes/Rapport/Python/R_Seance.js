@@ -17,10 +17,10 @@ const { spawn } = require('child_process');
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (req, res) => {
-    const { id_Seance, Timestamp_Generated } = req.body;
+    const { id_Seance, Timestamp_Generated, id_Patient, Date_Nais_Patient } = req.body;
     const Nom_Rapport = `ERT-SÉANCE[${id_Seance}]`
 
-    if (!id_Seance || !Timestamp_Generated) {
+    if (!id_Seance || !Timestamp_Generated || !id_Patient || !Date_Nais_Patient) {
         return res.status(400).json({ status: "Missing_fields" });
     }
 
@@ -38,7 +38,7 @@ router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (r
     fs.writeFileSync(IMG_1Path, IMG_1.buffer);
     fs.writeFileSync(IMG_2Path, IMG_2.buffer);
 
-    const pythonProcess = spawn('python', ['./routes/Rapport/Python/Seance_Code.py', IMG_1Path, IMG_2Path]);
+    const pythonProcess = spawn('python', ['./routes/Rapport/Python/Seance_Code.py', IMG_1Path, IMG_2Path, id_Patient, Date_Nais_Patient]);
 
     let outputData = '';
 
@@ -149,4 +149,5 @@ router.get("/", async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
 module.exports = router;
