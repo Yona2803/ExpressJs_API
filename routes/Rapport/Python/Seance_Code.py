@@ -25,19 +25,19 @@ def process_images(file1_path, file2_path, id_Patient, Date_Nais_Patient):
         num_vox = float(num_vox)
         voxel_vol = float(voxel_vol)
         tumor_vol = Decimal(num_vox) * Decimal(voxel_vol)
-        volumes.append(tumor_vol)
+        volumes.append(tumor_vol / Decimal(1000))
 
-    delta_vol = volumes[1] - volumes[0]
+    delta_vol = volumes[0] - volumes[1]
 
     DV_T = delta_vol
-    VT_1 = volumes[1]
-    VT_2 = volumes[0]
+    VT_1 = volumes[0]
+    VT_2 = volumes[1]
 
     file_names_display = ["Volume avant la séance", "Volume après la séance"]
 
     volume_data = {
         "Fichier": file_names_display,
-        "Volume Tumoral (mm³)": [float(vol) for vol in volumes],
+        "Volume Tumoral (cm³)": [float(vol) for vol in volumes],  # Changé en cm³
     }
 
     df_volumes = pd.DataFrame(volume_data)
@@ -45,7 +45,7 @@ def process_images(file1_path, file2_path, id_Patient, Date_Nais_Patient):
     df_difference = pd.DataFrame(
         {
             "Fichier": ["Différence de Volume"],
-            "Volume Tumoral (mm³)": [float(delta_vol)],
+            "Volume Tumoral (cm³)": [float(delta_vol)],  # Changé en cm³
         }
     )
 
@@ -70,7 +70,7 @@ def process_images(file1_path, file2_path, id_Patient, Date_Nais_Patient):
             table_patient_info.auto_set_font_size(False)
             table_patient_info.set_fontsize(8)
 
-            title = "Rapport Séance Numero i"  # Vous pouvez remplacer i par la valeur actuelle
+            title = "Rapport Séance Numero "
             ax1.set_title(title, fontsize=14, fontweight="bold", pad=10)
 
             ax2 = fig.add_subplot(3, 1, 2)
@@ -88,7 +88,7 @@ def process_images(file1_path, file2_path, id_Patient, Date_Nais_Patient):
             )
 
             ax2.set_xlabel("RESULTATS")
-            ax2.set_ylabel("Volume Tumoral (mm³)")
+            ax2.set_ylabel("Volume Tumoral (cm³)")
             ax2.set_title("Volume Tumoral Avant et Après la Séance")
             ax2.set_xticks(index)
             ax2.set_xticklabels(file_names_display)
@@ -122,15 +122,19 @@ def process_images(file1_path, file2_path, id_Patient, Date_Nais_Patient):
             )
             cell_state = table_volumes[3, 0]
             cell_state.get_text().set_text(
-                "Difference de Volume ".format(abs(float(delta_vol)))
+                "Difference de Volume ".format(float(delta_vol))
             )
 
             if delta_vol > 0:
-                state_text = "État en Évolution ------ delta V = {:.4f} mm³".format(
-                    abs(float(delta_vol))
+                state_text = "État en Évolution --- Volume tumoral diminuer de {:.2f} cm³".format(
+                    float(delta_vol)
                 )
             elif delta_vol < 0:
-                state_text = "État Se Dégrade ".format(abs(float(delta_vol)))
+                state_text = (
+                    "État Se Dégrade --- Volume tumoral Augmente de {:.2f} cm³".format(
+                        float(delta_vol)
+                    )
+                )
             else:
                 state_text = "Aucun changement dans le volume tumoral."
 
