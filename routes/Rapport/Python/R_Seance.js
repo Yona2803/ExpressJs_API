@@ -49,7 +49,8 @@ router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (r
     fs.writeFileSync(IMG_1Path, IMG_1.buffer);
     fs.writeFileSync(IMG_2Path, IMG_2.buffer);
 
-    const pythonProcess = spawn('python', ['./routes/Rapport/Python/Seance_Code.py', IMG_1Path, IMG_2Path, id_Patient, userInfo[2]]);
+        const dateCreated = new Date(Timestamp_Generated).toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const pythonProcess = spawn('python', ['./routes/Rapport/Python/Seance_Code.py', IMG_1Path, IMG_2Path, id_Patient, id_Seance, userInfo[2],dateCreated]);
 
     let outputData = '';
 
@@ -69,6 +70,7 @@ router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (r
         console.log(`Python process exited with code ${code}`);
 
         const [delta_vol, vol_1, vol_2, pdf_path] = outputData.split(',');
+        console.log(delta_vol +" -|- "+ vol_1 +" -|- "+ vol_2 +" -|- "+ pdf_path)
         const pdfPath = pdf_path.trim();
 
         if (!pdfPath) {
