@@ -2,3 +2,4 @@ nibabel
 numpy
 matplotlib
 pandas
+reportlab
