@@ -162,13 +162,13 @@ def process_images(
         index = np.arange(len(file_names_display))
         rects1 = ax.bar(
             index - bar_width / 9,
-            [float(vol) / 1000 for vol in volumes],  # Convert to cm³
+            [float(vol) for vol in volumes],
             bar_width,
             alpha=opacity,
             color=["b", "g"],
             label="Volume Tumoral",
         )
-        ax.set_ylabel("Volume Tumoral (cm³)", fontsize=9)  # Update to cm³
+        ax.set_ylabel("Volume Tumoral (mm³)", fontsize=9)
         ax.set_title(
             "Volume Tumoral Avant et Après la Séance", fontsize=12, fontweight="bold"
         )
