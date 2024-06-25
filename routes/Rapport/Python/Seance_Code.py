@@ -162,13 +162,13 @@ def process_images(
         index = np.arange(len(file_names_display))
         rects1 = ax.bar(
             index - bar_width / 9,
-            [float(vol) for vol in volumes],
+            [float(vol) / 1000 for vol in volumes],  # Convert to cm³
             bar_width,
             alpha=opacity,
             color=["b", "g"],
             label="Volume Tumoral",
         )
-        ax.set_ylabel("Volume Tumoral (mm³)", fontsize=9)
+        ax.set_ylabel("Volume Tumoral (cm³)", fontsize=9)  # Update to cm³
         ax.set_title(
             "Volume Tumoral Avant et Après la Séance", fontsize=12, fontweight="bold"
         )
@@ -290,7 +290,7 @@ def process_images(
         doc.build(elements)
 
         # Copy the PDF to a persistent location
-        script_dir = os.path.dirname(os.path.abspath(__file__))
+        script_dir = os.path.dirname(os.path.abspath(_file_))
         exported_dir = os.path.join(script_dir, "Exported")
         if not os.path.exists(exported_dir):
             os.makedirs(exported_dir)
@@ -301,7 +301,7 @@ def process_images(
     return persistent_pdf_path
 
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     file1_path = sys.argv[1]
     file2_path = sys.argv[2]
     id_Patient = sys.argv[3]
