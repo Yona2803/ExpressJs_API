@@ -61,42 +61,35 @@ router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (r
     pythonProcess.stderr.on('data', (data) => {
         console.error(`Python error: ${data.toString()}`);
         res.status(500).json({ status: "Server_Issue", error: data.toString() });
-    
-        // Remove files only after ensuring the response has not been sent
+
         if (fs.existsSync(IMG_1Path)) fs.unlinkSync(IMG_1Path);
         if (fs.existsSync(IMG_2Path)) fs.unlinkSync(IMG_2Path);
-        return; // Ensure no further code is executed
     });
-    
 
     pythonProcess.on('close', async (code) => {
         console.log(`Python process exited with code ${code}`);
-    
+
         const [delta_vol, vol_1, vol_2, pdf_path] = outputData.split(',');
         console.log(delta_vol +" -|- "+ vol_1 +" -|- "+ vol_2 +" -|- "+ pdf_path)
         const pdfPath = pdf_path.trim();
-    
+
         if (!pdfPath) {
-            if (!res.headersSent) {
-                res.status(500).json({ status: "Server_Issue", error: "PDF path not generated." });
-            }
+            res.status(500).json({ status: "Server_Issue", error: "PDF path not generated." });
             return;
         }
-    
+
         try {
             if (!fs.existsSync(pdfPath)) {
                 console.error(`PDF file not found at path: ${pdfPath}`);
-                if (!res.headersSent) {
-                    res.status(500).json({ status: "Server_Issue", error: "PDF file not found." });
-                }
+                res.status(500).json({ status: "Server_Issue", error: "PDF file not found." });
                 return;
             }
-    
+
             const PDF_buffer = fs.readFileSync(pdfPath);
             console.log(`PDF Buffer Length: ${PDF_buffer.length}`);
-    
+
             const existingFile = await Fichier.findOne({ id_Seance });
-    
+
             if (existingFile) {
                 console.log("file exist // " + id_Seance + " -|-" + Nom_Rapport)
                 existingFile.file.data = PDF_buffer;
@@ -114,31 +107,26 @@ router.post("/", upload.fields([{ name: "IMG_1" }, { name: "IMG_2" }]), async (r
                 });
                 await newFile.save();
             }
-    
+
             await saveFile(id_Seance, Nom_Rapport, vol_1, vol_2, delta_vol, Timestamp_Generated);
-    
-            if (!res.headersSent) {
-                res.status(200).json({
-                    VolT_1: parseFloat(vol_1),
-                    VolT_2: parseFloat(vol_2),
-                    DVolT: parseFloat(delta_vol),
-                    Timestamp_Generated,
-                    NomFishier: `ERT-SÉANCE[${id_Seance}]`,
-                    PDF_buffer: PDF_buffer.toString('base64'),
-                });
-            }
-    
+
+            res.status(200).json({
+                VolT_1: parseFloat(vol_1),
+                VolT_2: parseFloat(vol_2),
+                DVolT: parseFloat(delta_vol),
+                Timestamp_Generated,
+                NomFishier: `ERT-SÉANCE[${id_Seance}]`,
+                PDF_buffer: PDF_buffer.toString('base64'),
+            });
+
             if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
             if (fs.existsSync(IMG_1Path)) fs.unlinkSync(IMG_1Path);
             if (fs.existsSync(IMG_2Path)) fs.unlinkSync(IMG_2Path);
         } catch (error) {
             console.error(`Error processing PDF file: ${error}`);
-            if (!res.headersSent) {
-                res.status(500).json({ status: "Server_Issue", error: "Failed to process PDF file." });
-            }
+            res.status(500).json({ status: "Server_Issue", error: "Failed to process PDF file." });
         }
     });
-    
 });
 
 async function saveFile(id_Seance, Nom_Rapport, Volume_IMG1, Volume_IMG2, Difference_Volume, Timestamp_Generated) {
