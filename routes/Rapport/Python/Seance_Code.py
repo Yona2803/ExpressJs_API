@@ -268,14 +268,14 @@ def process_images(
         if DV_T > 0:
             Section_title = Paragraph(
                 "La situation s'améliore, la delta V = {:.2f} cm³".format(
-                    float(DV_T / 1000)
+                    float(DV_T)
                 ),
                 Title_Style,
             )
         elif DV_T < 0:
             Section_title = Paragraph(
                 "La situation se détériore, la delta V = {:.2f} cm³".format(
-                    float(DV_T / 1000)
+                    float(DV_T)
                 ),
                 Title_Style,
             )
