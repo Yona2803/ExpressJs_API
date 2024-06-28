@@ -1,3 +1,7 @@
+import matplotlib.pyplot as plt
+plt.plot()
+plt.close()
+
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import (
@@ -13,11 +17,9 @@ from matplotlib.backends.backend_pdf import PdfPages
 from decimal import Decimal, getcontext
 import nibabel as nb
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 import os
-import matplotlib.pyplot as plt
 from io import BytesIO
 import shutil
 import tempfile
